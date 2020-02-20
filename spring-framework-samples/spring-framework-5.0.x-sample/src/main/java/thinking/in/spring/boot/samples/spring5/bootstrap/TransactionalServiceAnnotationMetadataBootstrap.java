@@ -23,6 +23,7 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import thinking.in.spring.boot.samples.spring5.annotation.TransactionalService;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,7 +32,7 @@ import java.util.Set;
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @since 1.0.0
  */
-@TransactionalService
+@TransactionalService("txManager")
 public class TransactionalServiceAnnotationMetadataBootstrap {
 
     public static void main(String[] args) throws IOException {
@@ -40,16 +41,27 @@ public class TransactionalServiceAnnotationMetadataBootstrap {
         // 构建 MetadataReaderFactory 实例
         MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
         // 读取 @TransactionService MetadataReader 信息
-        MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
+        //MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
+        MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(TransactionalService.class.getName());
         // 读取 @TransactionService AnnotationMetadata 信息
         AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
 
         annotationMetadata.getAnnotationTypes().forEach(annotationType -> {
 
+            Map<String,Object> annotationAttributeMap = annotationMetadata.getAnnotationAttributes(annotationType);
+            annotationAttributeMap.forEach((key,value) -> {
+                System.out.printf("注解 @%s 属性 %s = %s\n",annotationType,key,value);
+            });
+
             Set<String> metaAnnotationTypes = annotationMetadata.getMetaAnnotationTypes(annotationType);
 
             metaAnnotationTypes.forEach(metaAnnotationType -> {
                 System.out.printf("注解 @%s 元标注 @%s\n", annotationType, metaAnnotationType);
+
+                Map<String,Object> metaAnnotationAttributeMap = annotationMetadata.getAnnotationAttributes(metaAnnotationType);
+                metaAnnotationAttributeMap.forEach((key,value) -> {
+                    System.out.printf("注解 @%s 属性 %s = %s\n",metaAnnotationType,key,value);
+                });
             });
 
         });
